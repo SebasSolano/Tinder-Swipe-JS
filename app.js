@@ -1,3 +1,4 @@
+const DECISION_THRESHOLD = 80;
 let isAnimating = false;
 let pullDeltaX = 0;
 
@@ -10,7 +11,7 @@ function startDrag(event) {
   // get initial position of mouse or finger
   const startX = event.pageX ?? event.touches[0].pageX;
 
-  // listen the mouse and touch movement
+  // listen the mouse and touch movements
   document.addEventListener("mousemove", onMove);
   document.addEventListener("mouseup", onEnd);
 
@@ -20,20 +21,24 @@ function startDrag(event) {
   function onMove(event) {
     // current position of mouse or finger
     const currentX = event.pageX ?? event.touches[0].pageX;
-    // the distance between the initial position and current position
+
+    // the distance between the initial and current position
     pullDeltaX = currentX - startX;
 
-    if(pullDeltaX === 0) return
+    // there is no distance traveled in X axis
+    if (pullDeltaX === 0) return;
+
     // change the flag to indicate we are animating
-    isAnimating = true
+    isAnimating = true;
 
     // calculate the rotation of the card using the distance
-    const deg =  pullDeltaX / 14
+    const deg = pullDeltaX / 14;
 
     // apply the transformation to the card
-    actualCard.style.transform = `translateX(${pullDeltaX}px) rotate(${deg}deg)`
-    // change de cursor to grabbing
-    actualCard.style.cursor = `grabbing`
+    actualCard.style.transform = `translateX(${pullDeltaX}px) rotate(${deg}deg)`;
+
+    // change the cursor to grabbing
+    actualCard.style.cursor = "grabbing";
   }
 
   function onEnd(event) {
@@ -44,17 +49,34 @@ function startDrag(event) {
     document.removeEventListener("touchmove", onMove);
     document.removeEventListener("touchend", onEnd);
 
+    // saber si el usuario tomo una decisión
+    const decisionMade = Math.abs(pullDeltaX) >= DECISION_THRESHOLD;
 
-    // TODO: TO REMOVE AS WE ARE DOING THIS OTHER WAY
-    // reset the flag
-    isAnimating = false
-    // reset the distance
-    pullDeltaX = 0
-    // reset the transform
-    actualCard.style.transform = 'none'
-    // reset the cursor
-    actualCard.style.cursor = 'grab'
+    if (decisionMade) {
+      const goRight = pullDeltaX >= 0;
 
+      // add class according to the decision
+      actualCard.classList.add(goRight ? "go-right" : "go-left");
+      actualCard.addEventListener("transitionend", () => {
+        actualCard.remove();
+      });
+    } else {
+      actualCard.classList.add("reset");
+      actualCard.classList.remove("go-right", "go-left");
+
+      actualCard.querySelectorAll(".choice").forEach((choice) => {
+        choice.style.opacity = 0;
+      });
+    }
+
+    // reset the variables
+    actualCard.addEventListener("transitionend", () => {
+      actualCard.removeAttribute("style");
+      actualCard.classList.remove("reset");
+
+      pullDeltaX = 0;
+      isAnimating = false;
+    });
   }
 }
 
