@@ -39,6 +39,16 @@ function startDrag(event) {
 
     // change the cursor to grabbing
     actualCard.style.cursor = "grabbing";
+
+    // change opacity of the choice info
+    const opacity = Math.abs(pullDeltaX) / 100;
+    const isRight = pullDeltaX > 0;
+
+    const choiceEl = isRight
+      ? actualCard.querySelector(".choice.like")
+      : actualCard.querySelector(".choice.nope");
+
+    choiceEl.style.opacity = opacity;
   }
 
   function onEnd(event) {
